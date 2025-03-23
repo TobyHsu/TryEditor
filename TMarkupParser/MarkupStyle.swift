@@ -222,10 +222,10 @@ struct StyleAttribute: Equatable {
 //    }
 //}
 
-class MarkupStyle {
+public class MarkupStyle {
     let style: MarkupStyleType
     
-    init(style: MarkupStyleType) {
+    public init(style: MarkupStyleType) {
         self.style = style
     }
     

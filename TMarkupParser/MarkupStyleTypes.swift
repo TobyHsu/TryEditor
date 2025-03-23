@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 // MARK: - 基本样式类型
-protocol MarkupStyleType {
+public protocol MarkupStyleType {
     /// 用於匹配輸入文本的正則表達式模式
     var patterns: String { get }
     var name: String { get }

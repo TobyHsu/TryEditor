@@ -1,11 +1,12 @@
 import Foundation
 import UIKit
 
-protocol MarkupVisitor {
+public protocol MarkupVisitor {
     associatedtype Result
     
     func visit(text: TextNode) -> Result
     func visit(style: StyleNode) -> Result
+    func visit(root: RootNode) -> Result
 }
 
 // MARK: - NSAttributedString Visitor
@@ -130,6 +131,19 @@ class AttributedStringVisitor: MarkupVisitor {
         return result
     }
     
+    // 实现visit(root:)方法
+    func visit(root: RootNode) -> NSAttributedString {
+        let result = NSMutableAttributedString()
+        
+        // 遍历处理所有子节点
+        for child in root.children {
+            let childResult = child.accept(self)
+            result.append(childResult)
+        }
+        
+        return result
+    }
+    
     // 合并两个字体的属性
     private func mergeFonts(existingFont: UIFont, newFont: UIFont) -> UIFont {
         // 保留现有字体的大小（如果新字体没有指定大小）
@@ -209,6 +223,12 @@ class RawTextVisitor: MarkupVisitor {
             let childrenText = style.children.map { $0.accept(self) }.joined()
             return style.style.standardOpeningTag + childrenText + style.style.standardClosingTag
         }
+    }
+    
+    // 实现visit(root:)方法
+    func visit(root: RootNode) -> String {
+        // 合并所有子节点的文本
+        return root.children.map { $0.accept(self) }.joined()
     }
     
     // 格式化列表项，處理縮進和換行

@@ -19,6 +19,9 @@
 		DAB263CC2D7F310C00312CB7 /* TMarkupParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB263CB2D7F310C00312CB7 /* TMarkupParserTests.swift */; };
 		DAB263DB2D81E30700312CB7 /* MarkupNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB263DA2D81E30700312CB7 /* MarkupNormalizer.swift */; };
 		DAB263DD2D81FD6A00312CB7 /* MarkupStyleTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB263DC2D81FD6A00312CB7 /* MarkupStyleTypes.swift */; };
+		DAB6FF372D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF342D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift */; };
+		DAB6FF382D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF352D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift */; };
+		DAB6FF392D906D3D00CD2DD7 /* TRichTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF362D906D3D00CD2DD7 /* TRichTextEditor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +49,9 @@
 		DAB263CB2D7F310C00312CB7 /* TMarkupParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMarkupParserTests.swift; sourceTree = "<group>"; };
 		DAB263DA2D81E30700312CB7 /* MarkupNormalizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MarkupNormalizer.swift; sourceTree = "<group>"; };
 		DAB263DC2D81FD6A00312CB7 /* MarkupStyleTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MarkupStyleTypes.swift; sourceTree = "<group>"; };
+		DAB6FF342D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TRichTextEditorToolbar.swift; sourceTree = "<group>"; };
+		DAB6FF352D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TRichTextEditorSwiftUI.swift; sourceTree = "<group>"; };
+		DAB6FF362D906D3D00CD2DD7 /* TRichTextEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TRichTextEditor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +93,9 @@
 		DAB263A82D7DB96C00312CB7 /* TMarkupParser */ = {
 			isa = PBXGroup;
 			children = (
+				DAB6FF362D906D3D00CD2DD7 /* TRichTextEditor.swift */,
+				DAB6FF352D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift */,
+				DAB6FF342D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift */,
 				DAB263DA2D81E30700312CB7 /* MarkupNormalizer.swift */,
 				DAB263A92D7DB96C00312CB7 /* TMarkupParserApp.swift */,
 				DAB263DC2D81FD6A00312CB7 /* MarkupStyleTypes.swift */,
@@ -222,10 +231,13 @@
 				DAB263C22D7DBDCD00312CB7 /* MarkupNode.swift in Sources */,
 				DAB263DD2D81FD6A00312CB7 /* MarkupStyleTypes.swift in Sources */,
 				DAB263BA2D7DBB2200312CB7 /* MarkupParser.swift in Sources */,
+				DAB6FF372D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift in Sources */,
 				DAB263BB2D7DBB2200312CB7 /* MarkupVisitor.swift in Sources */,
 				DAB263DB2D81E30700312CB7 /* MarkupNormalizer.swift in Sources */,
+				DAB6FF382D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift in Sources */,
 				DAB263AA2D7DB96C00312CB7 /* TMarkupParserApp.swift in Sources */,
 				DAB263C42D7DC3EB00312CB7 /* MarkupConverter.swift in Sources */,
+				DAB6FF392D906D3D00CD2DD7 /* TRichTextEditor.swift in Sources */,
 				DAB263BE2D7DBD6D00312CB7 /* MarkupStyle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

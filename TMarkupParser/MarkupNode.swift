@@ -1,34 +1,56 @@
 import Foundation
 
 // MARK: - Node Protocol
-protocol MarkupNode {
+public protocol MarkupNode {
     func accept<V: MarkupVisitor>(_ visitor: V) -> V.Result
+    
+    // 添加一个子节点的获取方法，便于访问器遍历
+    var children: [MarkupNode] { get }
 }
 
 // MARK: - Concrete Nodes
-class TextNode: MarkupNode {
+public class TextNode: MarkupNode {
     let text: String
+    
+    // 实现children属性
+    public var children: [MarkupNode] {
+        return [] // 文本节点没有子节点
+    }
     
     init(text: String) {
         self.text = text
     }
     
-    func accept<V: MarkupVisitor>(_ visitor: V) -> V.Result {
+    public func accept<V: MarkupVisitor>(_ visitor: V) -> V.Result {
         return visitor.visit(text: self)
     }
 }
 
-class StyleNode: MarkupNode {
+public class StyleNode: MarkupNode {
     let style: MarkupStyle
-    let children: [MarkupNode]
+    public let children: [MarkupNode]
     
     init(style: MarkupStyle, children: [MarkupNode]) {
         self.style = style
         self.children = children
     }
     
-    func accept<V: MarkupVisitor>(_ visitor: V) -> V.Result {
+    public func accept<V: MarkupVisitor>(_ visitor: V) -> V.Result {
         return visitor.visit(style: self)
+    }
+}
+
+// 添加根节点类，用作文档的顶层容器
+public class RootNode: MarkupNode {
+    public let children: [MarkupNode]
+    
+    public init(children: [MarkupNode]) {
+        self.children = children
+    }
+    
+    public func accept<V: MarkupVisitor>(_ visitor: V) -> V.Result {
+        // 根节点通常会遍历所有子节点，并合并结果
+        return visitor.visit(root: self)
     }
 }
 

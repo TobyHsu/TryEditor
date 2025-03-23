@@ -1,12 +1,12 @@
 import Foundation
 import UIKit
 
-class MarkupParser {
+public class MarkupParser {
     private var styles: [String: MarkupStyle]
     private var patterns: [(NSRegularExpression, (NSTextCheckingResult, String) -> MarkupStyle?)]
     private let normalizer: MarkupNormalizer
 
-    init(normalizer: MarkupNormalizer = MarkupNormalizer()) {
+    public init(normalizer: MarkupNormalizer = MarkupNormalizer()) {
         self.styles = [:]
         self.patterns = []
         self.normalizer = normalizer

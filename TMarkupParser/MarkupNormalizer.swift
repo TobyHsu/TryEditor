@@ -1,7 +1,8 @@
 import Foundation
 
-class MarkupNormalizer {
-    func normalize(_ text: String) -> String {
+public class MarkupNormalizer {
+    public init() {}
+    public func normalize(_ text: String) -> String {
         var result = text
         
         // 正规化粗体标记（将三个或更多星号正规化为两个星号）
