@@ -501,10 +501,38 @@ public class TRichTextEditor: NSObject, UITextViewDelegate {
         } else if style.name == "代码" || style.name == "code" {
             // 行内代码使用 ` 标记
             return "`" + text + "`"
+        } else if style.name == "quote" {
+            // 处理引用样式
+            let currentLevel = getCurrentQuoteLevel(text)
+            let quoteStyle = MarkupStyle.quote(level: currentLevel)
+            return quoteStyle.standardOpeningTag + text + quoteStyle.standardClosingTag
         } else {
             // 使用标准标签
             return style.standardOpeningTag + text + style.standardClosingTag
         }
+    }
+    
+    private func getCurrentQuoteLevel(_ text: String) -> Int {
+        var level = 0
+        let lines = text.components(separatedBy: .newlines)
+        
+        for line in lines {
+            var currentLineLevel = 0
+            var index = line.startIndex
+            
+            while index < line.endIndex {
+                if line[index] == ">" {
+                    currentLineLevel += 1
+                } else if !line[index].isWhitespace {
+                    break
+                }
+                index = line.index(after: index)
+            }
+            
+            level = max(level, currentLineLevel)
+        }
+        
+        return level
     }
     
     // 处理列表换行，保持列表样式延续
@@ -534,8 +562,11 @@ public class TRichTextEditor: NSObject, UITextViewDelegate {
         let isBulletList = previousLineText.matches(pattern: "^(\\s*)- ")
         let isNumberList = previousLineText.matches(pattern: "^(\\s*)\\d+\\. ")
         
-        if isBulletList || isNumberList {
-            // 如果上一行是列表项，则获取其前缀
+        // 检查上一行是否只有列表前缀（用户删除了内容）
+        let isPreviousLineEmpty = previousLineText.matches(pattern: "^(\\s*)(- |\\d+\\. )\\s*$")
+        
+        if (isBulletList || isNumberList) && !isPreviousLineEmpty {
+            // 只有当上一行是列表项且不是空列表项时，才继续列表样式
             var prefix = ""
             var indentation = ""
             

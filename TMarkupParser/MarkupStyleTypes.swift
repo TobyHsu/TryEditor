@@ -67,18 +67,27 @@ struct LinkStyle: MarkupStyleType {
 
 // MARK: - 引用样式
 struct QuoteStyle: MarkupStyleType {
-    var patterns: String { return "(^|\\n)>\\s*([^\\n]*(\\n>\\s*[^\\n]*)*)" }
+    let level: Int
+    
+    init(level: Int = 0) {
+        self.level = level
+    }
+    
+    var patterns: String { return "(^|\\n)(>+\\s*[^\\n]*(?:\\n>+\\s*[^\\n]*)*)" }
     var name: String { return "quote" }
-    var standardOpeningTag: String { return "> " }
+    var standardOpeningTag: String { return String(repeating: "> ", count: level + 1) }
     var standardClosingTag: String { return "\n" }
     
     func createAttributes() -> [NSAttributedString.Key: Any] {
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.headIndent = 20
-        paragraphStyle.firstLineHeadIndent = 20
+        let baseIndent: CGFloat = 20.0
+        let levelIndent = CGFloat(level + 1) * baseIndent
+        
+        paragraphStyle.headIndent = levelIndent
+        paragraphStyle.firstLineHeadIndent = levelIndent
         
         return [
-            .backgroundColor: UIColor.systemGray6,
+            .backgroundColor: UIColor.systemGray6.withAlphaComponent(CGFloat(level + 1) * 0.2),
             .paragraphStyle: paragraphStyle
         ]
     }
@@ -301,6 +310,40 @@ struct HorizontalRuleStyle: MarkupStyleType {
         return [
             .paragraphStyle: paragraphStyle,
             .backgroundColor: UIColor.systemGray5
+        ]
+    }
+}
+
+// MARK: - 標題樣式
+struct HeadingStyle: MarkupStyleType {
+    let level: Int
+    
+    init(level: Int) {
+        self.level = max(1, min(6, level))  // 確保 level 在 1-6 之間
+    }
+    
+    var patterns: String {
+        let prefix = String(repeating: "#", count: level)
+        return "^\(prefix)\\s+([^\\n]+)$"
+    }
+    
+    var name: String { return "h\(level)" }
+    var standardOpeningTag: String { return String(repeating: "#", count: level) + " " }
+    var standardClosingTag: String { return "\n" }
+    
+    func createAttributes() -> [NSAttributedString.Key: Any] {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.paragraphSpacing = 10
+        paragraphStyle.paragraphSpacingBefore = 10
+        
+        // 根據標題級別設置字體大小
+        let sizes: [CGFloat] = [28, 24, 20, 18, 16, 14]
+        let fontSize = sizes[level - 1]
+        
+        return [
+            .font: UIFont.boldSystemFont(ofSize: fontSize),
+            .paragraphStyle: paragraphStyle,
+            .foregroundColor: UIColor.label
         ]
     }
 } 

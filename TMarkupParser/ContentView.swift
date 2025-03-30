@@ -8,37 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var text = """
-    # TMarkupParser 富文本编辑器示例
-    
-    **粗体文本** 和 _斜体文本_ 示例
-    
-    ## 列表示例
-    - 项目符号列表项1
-    - 包含**粗体**的列表项
-    - _斜体样式_的列表项
-    
-    ## 数字列表示例
-    1. 数字列表项1
-    2. 包含{{font color="#FF0000"}}红色文字{{/font}}的数字列表项
-    3. 包含[链接](https://apple.com)的列表项
-    
-    > 这是一段引用文本
-    > 支持多行显示
-    
-    `这是行内代码`
-    
-    ```
-    // 这是代码块
-    func example() {
-        print("Hello, World!")
-    }
-    ```
-    
-    ***
-    
-    最后一行文本
-    """
+    @State private var text = ""
     
     @State private var selectedRange = NSRange(location: 0, length: 0)
     @State private var isEditable = true

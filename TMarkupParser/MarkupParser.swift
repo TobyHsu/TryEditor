@@ -14,6 +14,9 @@ public class MarkupParser {
     }
 
     private func registerDefaultMarkdownStyles() {
+        // 先註冊標題樣式（最高優先級）
+        registerHeadingStyles()
+        
         // 先註冊 code block，確保它優先於其他樣式被匹配
         registerCodeBlockStyle()
 
@@ -21,7 +24,7 @@ public class MarkupParser {
         registerListStyles()
 
         // 註冊引用樣式（第三優先級）
-        registerFixedStyle(MarkupStyle.quote)
+        registerQuoteStyle()
 
         // 註冊分隔線樣式
         registerHorizontalRuleStyle()
@@ -37,6 +40,16 @@ public class MarkupParser {
 
         // 最後註冊動態樣式解析器
         registerDynamicStyle()
+    }
+
+    private func registerHeadingStyles() {
+        // 註冊 H1-H6 標題樣式
+        registerFixedStyle(MarkupStyle.h1())
+        registerFixedStyle(MarkupStyle.h2())
+        registerFixedStyle(MarkupStyle.h3())
+        registerFixedStyle(MarkupStyle.h4())
+        registerFixedStyle(MarkupStyle.h5())
+        registerFixedStyle(MarkupStyle.h6())
     }
 
     private func registerCodeBlockStyle() {
@@ -209,6 +222,33 @@ public class MarkupParser {
         }
     }
 
+    private func registerQuoteStyle() {
+        let pattern = "(^|\\n)(>+\\s*[^\\n]*(?:\\n>+\\s*[^\\n]*)*)"
+        if let regex = try? NSRegularExpression(pattern: pattern) {
+            patterns.append((regex, { match, text in
+                let nsText = text as NSString
+                let fullMatch = nsText.substring(with: match.range)
+                
+                // 计算引用层级
+                var maxLevel = 0
+                let lines = fullMatch.components(separatedBy: .newlines)
+                for line in lines where !line.isEmpty {
+                    var level = 0
+                    for char in line {
+                        if char == ">" {
+                            level += 1
+                        } else {
+                            break
+                        }
+                    }
+                    maxLevel = max(maxLevel, level)
+                }
+                
+                return MarkupStyle.quote(level: max(0, maxLevel - 1))
+            }))
+        }
+    }
+
     func parse(_ text: String) -> MarkupNode {
         // 先对文本进行正规化处理
         let normalizedText = normalizer.normalize(text)
@@ -320,7 +360,10 @@ public class MarkupParser {
         var currentIndex = 0
         let nsText = text as NSString
 
-        for (range, style) in matches {
+        // 按照位置排序匹配结果
+        let sortedMatches = matches.sorted { $0.0.location < $1.0.location }
+
+        for (range, style) in sortedMatches {
             if currentIndex < range.location {
                 let plainText = nsText.substring(with: NSRange(location: currentIndex, length: range.location - currentIndex))
                 if !plainText.isEmpty {
@@ -328,21 +371,60 @@ public class MarkupParser {
                 }
             }
 
-            // 特殊处理列表结构
+            // 特殊处理列表和引用样式
             if style.style is BulletListStyle {
                 let listNode = processListStructure(range: range, style: style, in: text, isBullet: true)
                 nodes.append(listNode)
             } else if style.style is NumberListStyle {
                 let listNode = processListStructure(range: range, style: style, in: text, isBullet: false)
                 nodes.append(listNode)
+            } else if style.style is QuoteStyle {
+                let quoteText = nsText.substring(with: range)
+                let lines = quoteText.components(separatedBy: .newlines)
+                var currentLevel = 0
+                var currentContent = ""
+                var quoteNodes: [MarkupNode] = []
+
+                for line in lines where !line.isEmpty {
+                    // 计算当前行的引用级别
+                    var level = 0
+                    var content = line
+                    while content.hasPrefix(">") {
+                        level += 1
+                        content = content.dropFirst().trimmingCharacters(in: .whitespaces)
+                    }
+
+                    if level != currentLevel {
+                        // 如果级别改变，处理之前累积的内容
+                        if !currentContent.isEmpty {
+                            let innerNode = parseInnerContent(currentContent)
+                            quoteNodes.append(StyleNode(style: MarkupStyle.quote(level: max(0, currentLevel - 1)), children: [innerNode]))
+                            currentContent = ""
+                        }
+                        currentLevel = level
+                    }
+
+                    // 添加当前行内容
+                    if !currentContent.isEmpty {
+                        currentContent += "\n"
+                    }
+                    currentContent += content
+                }
+
+                // 处理最后一段内容
+                if !currentContent.isEmpty {
+                    let innerNode = parseInnerContent(currentContent)
+                    quoteNodes.append(StyleNode(style: MarkupStyle.quote(level: max(0, currentLevel - 1)), children: [innerNode]))
+                }
+
+                // 将所有引用节点添加到主节点列表
+                nodes.append(contentsOf: quoteNodes)
             } else {
-                // 处理其他非列表样式
+                // 处理其他样式
                 let innerRange = NSRange(
                     location: range.location + style.standardOpeningTag.count,
                     length: range.length - style.standardOpeningTag.count - style.standardClosingTag.count)
                 let innerText = nsText.substring(with: innerRange)
-                
-                // 递归解析内部文本
                 let innerNode = parseInnerContent(innerText)
                 nodes.append(StyleNode(style: style, children: [innerNode]))
             }

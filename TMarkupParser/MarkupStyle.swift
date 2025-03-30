@@ -242,7 +242,9 @@ public class MarkupStyle {
     static func link(url: String) -> MarkupStyle {
         return MarkupStyle(style: LinkStyle(url: url))
     }
-    static let quote = MarkupStyle(style: QuoteStyle())
+    static func quote(level: Int = 0) -> MarkupStyle {
+        return MarkupStyle(style: QuoteStyle(level: level))
+    }
     static let code = MarkupStyle(style: CodeStyle())
     static func codeBlock(language: String? = nil) -> MarkupStyle {
         return MarkupStyle(style: CodeBlockStyle(language: language))
@@ -268,6 +270,31 @@ public class MarkupStyle {
     }
     static func custom(name: String, attributes: [StyleAttribute]) -> MarkupStyle {
         return MarkupStyle(style: CustomStyle(name: name, attributes: attributes))
+    }
+    
+    // MARK: - 標題樣式
+    public static func h1() -> MarkupStyle {
+        return MarkupStyle(style: HeadingStyle(level: 1))
+    }
+    
+    public static func h2() -> MarkupStyle {
+        return MarkupStyle(style: HeadingStyle(level: 2))
+    }
+    
+    public static func h3() -> MarkupStyle {
+        return MarkupStyle(style: HeadingStyle(level: 3))
+    }
+    
+    public static func h4() -> MarkupStyle {
+        return MarkupStyle(style: HeadingStyle(level: 4))
+    }
+    
+    public static func h5() -> MarkupStyle {
+        return MarkupStyle(style: HeadingStyle(level: 5))
+    }
+    
+    public static func h6() -> MarkupStyle {
+        return MarkupStyle(style: HeadingStyle(level: 6))
     }
     
     // MARK: - Helper Methods
@@ -346,7 +373,7 @@ public class MarkupStyle {
             let url = (text as NSString).substring(with: urlRange)
             return MarkupStyle.link(url: url)
         } else if fullMatch.hasPrefix(">") {
-            return MarkupStyle.quote
+            return MarkupStyle.quote()
         } else if fullMatch.hasPrefix("`") {
             if fullMatch.hasPrefix("```") {
                 let languageRange = match.range(at: 1)

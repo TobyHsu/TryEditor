@@ -120,12 +120,20 @@ class AttributedStringVisitor: MarkupVisitor {
             // 添加到结果中
             result.append(mutable)
             
-            // 如果是列表容器且不是最后一个子节点，添加换行符
-            if (style.style.style is BulletListStyle || style.style.style is NumberListStyle) && 
+            // 如果是列表容器或引用样式且不是最后一个子节点，添加换行符
+            if (style.style.style is BulletListStyle || 
+                style.style.style is NumberListStyle || 
+                style.style.style is QuoteStyle) && 
                index < style.children.count - 1 {
                 let newline = NSAttributedString(string: "\n")
                 result.append(newline)
             }
+        }
+        
+        // 如果是引用样式，在最后添加换行符
+        if style.style.style is QuoteStyle {
+            let newline = NSAttributedString(string: "\n")
+            result.append(newline)
         }
         
         return result
@@ -189,6 +197,15 @@ class RawTextVisitor: MarkupVisitor {
         switch style.style.style {
         case is CustomStyle where style.style.name == "plain":
             return style.children.map { $0.accept(self) }.joined()
+            
+        case is QuoteStyle:
+            // 处理引用样式
+            let childrenText = style.children.map { $0.accept(self) }.joined()
+            let lines = childrenText.components(separatedBy: "\n")
+            let quotedLines = lines.map { line in
+                return style.style.standardOpeningTag + line
+            }
+            return quotedLines.joined(separator: "\n")
             
         case is BulletListStyle:
             // 列表容器需要确保每个列表项之间有换行

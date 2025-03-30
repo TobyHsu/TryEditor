@@ -110,4 +110,88 @@ final class TMarkupParserTests: XCTestCase {
         let backToMarkup = converter.markupFromAttributedString(a)
         XCTAssertEqual(backToMarkup, rawText)
     }
+    
+    func testBulletList_6() {
+        let rawText = """
+        - 123
+          - ABC
+          - DEF
+        - 456
+        """
+        let a = converter.attributedStringFromMarkup(rawText)
+        let textView = UITextView(frame: CGRect(x: 0, y: 0, width: 300, height: 300))
+        textView.attributedText = a
+        print(a)
+        let backToMarkup = converter.markupFromAttributedString(a)
+        XCTAssertEqual(backToMarkup, rawText)
+    }
+    
+    func testQutote_1() {
+        let rawText = """
+        > Level 1
+        > > Level 2
+        > Level 1-1
+        """
+        let node = parser.parse(rawText)
+        let a = converter.attributedStringFromMarkup(rawText)
+        let textView = UITextView(frame: CGRect(x: 0, y: 0, width: 300, height: 300))
+        textView.attributedText = a
+        print(a)
+        let backToMarkup = converter.markupFromAttributedString(a)
+        XCTAssertEqual(backToMarkup, rawText)
+    }
+    
+    func testHeadingStyles() {
+        // 測試所有標題級別
+        let testCases = [
+            "# 一級標題",
+            "## 二級標題",
+            "### 三級標題",
+            "#### 四級標題",
+            "##### 五級標題",
+            "###### 六級標題"
+        ]
+        
+        for (index, testCase) in testCases.enumerated() {
+            let attributedString = converter.attributedStringFromMarkup(testCase)
+            let backToMarkup = converter.markupFromAttributedString(attributedString)
+            
+            // 驗證轉換後的文本
+            XCTAssertEqual(backToMarkup, testCase)
+            
+            // 驗證字體大小
+            if let font = attributedString.attribute(.font, at: 0, effectiveRange: nil) as? UIFont {
+                let expectedSizes: [CGFloat] = [28, 24, 20, 18, 16, 14]
+                XCTAssertEqual(font.pointSize, expectedSizes[index])
+                
+                // 驗證字體是否為粗體
+                XCTAssertTrue(font.fontDescriptor.symbolicTraits.contains(.traitBold))
+            } else {
+                XCTFail("標題應該有字體屬性")
+            }
+            
+            // 驗證段落樣式
+            if let paragraphStyle = attributedString.attribute(.paragraphStyle, at: 0, effectiveRange: nil) as? NSParagraphStyle {
+                XCTAssertEqual(paragraphStyle.paragraphSpacing, 10)
+                XCTAssertEqual(paragraphStyle.paragraphSpacingBefore, 10)
+            } else {
+                XCTFail("標題應該有段落樣式")
+            }
+        }
+    }
+    
+    func testMixedHeadingStyles() {
+        let testCase = """
+        # 一級標題
+        正常文本
+        ## 二級標題
+        ### 三級標題
+        正常文本
+        """
+        
+        let attributedString = converter.attributedStringFromMarkup(testCase)
+        let backToMarkup = converter.markupFromAttributedString(attributedString)
+        
+        XCTAssertEqual(backToMarkup, testCase)
+    }
 }

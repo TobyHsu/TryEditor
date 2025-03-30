@@ -75,8 +75,12 @@ class MarkupConverter {
         // 檢查段落樣式
         if let paragraphStyle = attributes[.paragraphStyle] as? NSParagraphStyle {
             // 檢查引用樣式
-            if paragraphStyle.firstLineHeadIndent == 20 && paragraphStyle.headIndent == 20 {
-                styles.append(MarkupStyle.quote)
+            if paragraphStyle.firstLineHeadIndent > 0 && paragraphStyle.headIndent == paragraphStyle.firstLineHeadIndent {
+                // 计算引用层级
+                let level = Int(paragraphStyle.firstLineHeadIndent / 20) - 1
+                if level >= 0 {
+                    styles.append(MarkupStyle.quote(level: level))
+                }
             }
             
             // 檢查列表樣式
