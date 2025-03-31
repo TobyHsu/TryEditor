@@ -6,6 +6,7 @@ class MarkupEditorViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupTestButtons()
     }
     
     private func setupUI() {
@@ -57,10 +58,116 @@ class MarkupEditorViewController: UIViewController {
         """
     }
     
+    private func setupTestButtons() {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.spacing = 8
+        stackView.distribution = .fillEqually
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let insertTableButton = UIButton(type: .system)
+        insertTableButton.setTitle("插入表格", for: .normal)
+        insertTableButton.addTarget(self, action: #selector(insertTableTapped), for: .touchUpInside)
+        
+        let insertMentionButton = UIButton(type: .system)
+        insertMentionButton.setTitle("插入提及", for: .normal)
+        insertMentionButton.addTarget(self, action: #selector(insertMentionTapped), for: .touchUpInside)
+        
+        let insertImageButton = UIButton(type: .system)
+        insertImageButton.setTitle("插入圖片", for: .normal)
+        insertImageButton.addTarget(self, action: #selector(insertImageTapped), for: .touchUpInside)
+        
+        let insertGIFButton = UIButton(type: .system)
+        insertGIFButton.setTitle("插入GIF", for: .normal)
+        insertGIFButton.addTarget(self, action: #selector(insertGIFTapped), for: .touchUpInside)
+        
+        stackView.addArrangedSubview(insertTableButton)
+        stackView.addArrangedSubview(insertMentionButton)
+        stackView.addArrangedSubview(insertImageButton)
+        stackView.addArrangedSubview(insertGIFButton)
+        
+        view.addSubview(stackView)
+        
+        NSLayoutConstraint.activate([
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            stackView.heightAnchor.constraint(equalToConstant: 44)
+        ])
+    }
+    
+    @objc private func insertTableTapped() {
+        let testData = [
+            ["標題1", "標題2", "標題3"],
+            ["數據1", "數據2", "數據3"],
+            ["數據4", "數據5", "數據6"]
+        ]
+        
+        let textView = markupEditor.getTextView()
+        markupEditor.insertTable(data: testData, at: textView.selectedRange)
+    }
+    
+    @objc private func insertMentionTapped() {
+        let textView = markupEditor.getTextView()
+        markupEditor.insertMention(
+            userId: "user123",
+            displayName: "測試用戶",
+            at: textView.selectedRange
+        ) { userId in
+            let alert = UIAlertController(
+                title: "提及用戶",
+                message: "點擊了用戶ID: \(userId)",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "確定", style: .default))
+            self.present(alert, animated: true)
+        }
+    }
+    
+    @objc private func insertImageTapped() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.sourceType = .photoLibrary
+        imagePicker.delegate = self
+        present(imagePicker, animated: true)
+    }
+    
+    @objc private func insertGIFTapped() {
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.gif])
+        documentPicker.delegate = self
+        present(documentPicker, animated: true)
+    }
+    
     @objc private func previewTapped() {
         let previewVC = MarkupPreviewViewController(
             content: markupEditor.getTextView().text
         )
         navigationController?.pushViewController(previewVC, animated: true)
+    }
+}
+
+// MARK: - UIImagePickerControllerDelegate
+extension MarkupEditorViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true)
+        
+        if let image = info[.originalImage] as? UIImage,
+           let imageData = image.jpegData(compressionQuality: 0.8) {
+            let textView = markupEditor.getTextView()
+            markupEditor.insertLocalImage(data: imageData, at: textView.selectedRange)
+        }
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true)
+    }
+}
+
+// MARK: - UIDocumentPickerDelegate
+extension MarkupEditorViewController: UIDocumentPickerDelegate {
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let gifURL = urls.first else { return }
+        
+        let textView = markupEditor.getTextView()
+        markupEditor.insertGIF(url: gifURL, at: textView.selectedRange)
     }
 } 

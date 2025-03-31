@@ -346,4 +346,307 @@ struct HeadingStyle: MarkupStyleType {
             .foregroundColor: UIColor.label
         ]
     }
+}
+
+// MARK: - Interactive Attachment
+public class InteractiveAttachment: NSTextAttachment {
+    private let containerView: UIView
+    private weak var textContainer: NSTextContainer?
+    private var lastBounds: CGRect = .zero
+    
+    init(view: UIView) {
+        self.containerView = view
+        super.init(data: nil, ofType: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    public override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
+        self.textContainer = textContainer
+        
+        let size = containerView.systemLayoutSizeFitting(
+            CGSize(width: lineFrag.width, height: UIView.layoutFittingExpandedSize.height),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        )
+        
+        lastBounds = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+        return lastBounds
+    }
+    
+    public override func image(forBounds imageBounds: CGRect, textContainer: NSTextContainer?, characterIndex charIndex: Int) -> UIImage? {
+        return UIImage()
+    }
+    
+    func addToTextView(_ textView: UITextView) {
+        containerView.frame = lastBounds
+        textView.addSubview(containerView)
+        
+        NotificationCenter.default.addObserver(self,
+            selector: #selector(updatePosition),
+            name: UITextView.textDidChangeNotification,
+            object: textView)
+    }
+    
+    @objc private func updatePosition(_ notification: Notification) {
+        guard let textContainer = textContainer,
+              let layoutManager = textContainer.layoutManager,
+              let textView = notification.object as? UITextView,
+              let range = findAttachmentRange(in: textView) else {
+            return
+        }
+        
+        let glyphRange = layoutManager.glyphRange(forCharacterRange: range, actualCharacterRange: nil)
+        var boundingRect = layoutManager.boundingRect(forGlyphRange: glyphRange, in: textContainer)
+        
+        boundingRect.origin.x += textView.textContainerInset.left
+        boundingRect.origin.y += textView.textContainerInset.top
+        
+        containerView.frame = boundingRect
+    }
+    
+    private func findAttachmentRange(in textView: UITextView) -> NSRange? {
+        let attributedText = textView.attributedText
+        let fullRange = NSRange(location: 0, length: attributedText?.length ?? 0)
+        
+        var result: NSRange?
+        attributedText?.enumerateAttribute(.attachment, in: fullRange) { value, range, stop in
+            if let attachment = value as? NSTextAttachment, attachment === self {
+                result = range
+                stop.pointee = true
+            }
+        }
+        
+        return result
+    }
+}
+
+// MARK: - Mention View
+public class MentionView: UIView {
+    private let userId: String
+    private let displayName: String
+    private var onTap: ((String) -> Void)?
+    
+    private lazy var button: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("@" + displayName, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 14)
+        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    init(userId: String, displayName: String, onTap: @escaping (String) -> Void) {
+        self.userId = userId
+        self.displayName = displayName
+        self.onTap = onTap
+        super.init(frame: .zero)
+        setupUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupUI() {
+        addSubview(button)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            button.topAnchor.constraint(equalTo: topAnchor),
+            button.leadingAnchor.constraint(equalTo: leadingAnchor),
+            button.trailingAnchor.constraint(equalTo: trailingAnchor),
+            button.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+    }
+    
+    @objc private func buttonTapped() {
+        onTap?(userId)
+    }
+}
+
+// MARK: - Interactive Table View
+public class InteractiveTableView: UITableView {
+    private var data: [[String]]
+    
+    init(data: [[String]]) {
+        self.data = data
+        super.init(frame: .zero, style: .plain)
+        setupUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupUI() {
+        dataSource = self
+        delegate = self
+        register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+        isScrollEnabled = false
+        
+        // 自動計算高度
+        rowHeight = UITableView.automaticDimension
+        estimatedRowHeight = 44
+    }
+}
+
+extension InteractiveTableView: UITableViewDataSource, UITableViewDelegate {
+    public func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return data.count
+    }
+    
+    public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        let row = data[indexPath.row]
+        cell.textLabel?.text = row.joined(separator: " | ")
+        return cell
+    }
+}
+
+// MARK: - Image Attachment
+public class ImageAttachment: NSTextAttachment {
+    private let imageURL: URL
+    private let maxWidth: CGFloat
+    private weak var textContainer: NSTextContainer?
+    private var cachedImage: UIImage?
+    private var imageSize: CGSize = .zero
+    private var isLoading = false
+    
+    private static let imageCache = NSCache<NSURL, UIImage>()
+    
+    init(imageURL: URL, maxWidth: CGFloat = UIScreen.main.bounds.width - 32) {
+        self.imageURL = imageURL
+        self.maxWidth = maxWidth
+        super.init(data: nil, ofType: nil)
+        
+        // 配置緩存
+        ImageAttachment.imageCache.countLimit = 50 // 最多緩存50張圖片
+        ImageAttachment.imageCache.totalCostLimit = 50 * 1024 * 1024 // 50MB 上限
+        
+        loadImage()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    public override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
+        self.textContainer = textContainer
+        
+        if imageSize == .zero {
+            // 如果還沒有圖片，返回一個佔位大小
+            return CGRect(x: 0, y: 0, width: maxWidth, height: 44)
+        }
+        
+        // 計算適合的大小
+        let aspectRatio = imageSize.width / imageSize.height
+        let width = min(maxWidth, imageSize.width)
+        let height = width / aspectRatio
+        
+        return CGRect(x: 0, y: 0, width: width, height: height)
+    }
+    
+    public override func image(forBounds imageBounds: CGRect, textContainer: NSTextContainer?, characterIndex charIndex: Int) -> UIImage? {
+        return cachedImage
+    }
+    
+    private func loadImage() {
+        // 檢查緩存
+        if let cachedImage = ImageAttachment.imageCache.object(forKey: imageURL as NSURL) {
+            self.cachedImage = cachedImage
+            self.imageSize = cachedImage.size
+            updateTextContainer()
+            return
+        }
+        
+        guard !isLoading else { return }
+        isLoading = true
+        
+        let task = URLSession.shared.dataTask(with: imageURL) { [weak self] data, response, error in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                self.isLoading = false
+                
+                if let data = data, let image = UIImage(data: data) {
+                    // 根據最大寬度調整圖片大小
+                    let aspectRatio = image.size.width / image.size.height
+                    let width = min(self.maxWidth, image.size.width)
+                    let height = width / aspectRatio
+                    
+                    // 重新縮放圖片以節省內存
+                    let resizedImage = self.resizeImage(image, to: CGSize(width: width, height: height))
+                    
+                    // 儲存到緩存
+                    ImageAttachment.imageCache.setObject(resizedImage, forKey: self.imageURL as NSURL)
+                    
+                    self.cachedImage = resizedImage
+                    self.imageSize = resizedImage.size
+                    self.updateTextContainer()
+                }
+            }
+        }
+        task.resume()
+    }
+    
+    private func updateTextContainer() {
+        guard let textContainer = textContainer,
+              let layoutManager = textContainer.layoutManager,
+              let textView = layoutManager.textContainerForGlyphAt(0, effectiveRange: nil) as? UITextView,
+              let range = findAttachmentRange(in: textView) else {
+            return
+        }
+        
+        // 通知 TextView 重新布局
+        layoutManager.invalidateLayout(forCharacterRange: range, actualCharacterRange: nil)
+        textView.layoutManager.ensureLayout(forCharacterRange: range)
+        textView.setNeedsDisplay()
+    }
+    
+    private func findAttachmentRange(in textView: UITextView) -> NSRange? {
+        let attributedText = textView.attributedText
+        let fullRange = NSRange(location: 0, length: attributedText?.length ?? 0)
+        
+        var result: NSRange?
+        attributedText?.enumerateAttribute(.attachment, in: fullRange) { value, range, stop in
+            if let attachment = value as? NSTextAttachment, attachment === self {
+                result = range
+                stop.pointee = true
+            }
+        }
+        
+        return result
+    }
+    
+    private func resizeImage(_ image: UIImage, to targetSize: CGSize) -> UIImage {
+        let size = image.size
+        
+        let widthRatio  = targetSize.width  / size.width
+        let heightRatio = targetSize.height / size.height
+        
+        // 使用比例較小的一個，確保圖片完全適應目標大小
+        let scale = min(widthRatio, heightRatio)
+        
+        let scaledSize = CGSize(
+            width: size.width * scale,
+            height: size.height * scale
+        )
+        
+        let renderer = UIGraphicsImageRenderer(size: scaledSize)
+        let resizedImage = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: scaledSize))
+        }
+        
+        return resizedImage
+    }
+    
+    // 清理緩存
+    public static func clearCache() {
+        imageCache.removeAllObjects()
+    }
 } 

@@ -194,4 +194,49 @@ final class TMarkupParserTests: XCTestCase {
         
         XCTAssertEqual(backToMarkup, testCase)
     }
+    
+    func testInteractiveAttachments() {
+        // 測試表格附件
+        let tableData = [
+            ["標題1", "標題2"],
+            ["數據1", "數據2"]
+        ]
+        let tableView = InteractiveTableView(data: tableData)
+        let tableAttachment = InteractiveAttachment(view: tableView)
+        
+        let tableAttributedString = NSAttributedString(attachment: tableAttachment)
+        XCTAssertNotNil(tableAttributedString.attribute(.attachment, at: 0, effectiveRange: nil))
+        
+        // 測試提及附件
+        let mentionView = MentionView(userId: "test123", displayName: "測試用戶") { _ in }
+        let mentionAttachment = InteractiveAttachment(view: mentionView)
+        
+        let mentionAttributedString = NSAttributedString(attachment: mentionAttachment)
+        XCTAssertNotNil(mentionAttributedString.attribute(.attachment, at: 0, effectiveRange: nil))
+    }
+    
+//    func testMentionViewInteraction() {
+//        var mentionTapped = false
+//        let mentionView = MentionView(userId: "test123", displayName: "測試用戶") { _ in
+//            mentionTapped = true
+//        }
+//        
+//        // 模擬點擊
+//        mentionView.subviews.first?.sendActions(for: .touchUpInside)
+//        XCTAssertTrue(mentionTapped)
+//    }
+    
+    func testInteractiveTableViewDataSource() {
+        let testData = [
+            ["標題1", "標題2"],
+            ["數據1", "數據2"]
+        ]
+        let tableView = InteractiveTableView(data: testData)
+        
+        XCTAssertEqual(tableView.numberOfSections(in: tableView), 1)
+        XCTAssertEqual(tableView.tableView(tableView, numberOfRowsInSection: 0), 2)
+        
+        let cell = tableView.tableView(tableView, cellForRowAt: IndexPath(row: 0, section: 0))
+        XCTAssertEqual(cell.textLabel?.text, "標題1 | 標題2")
+    }
 }

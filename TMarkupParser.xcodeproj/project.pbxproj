@@ -22,6 +22,7 @@
 		DAB6FF372D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF342D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift */; };
 		DAB6FF382D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF352D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift */; };
 		DAB6FF392D906D3D00CD2DD7 /* TRichTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF362D906D3D00CD2DD7 /* TRichTextEditor.swift */; };
+		DAB6FF3C2D9AF8DA00CD2DD7 /* FLAnimatedImage in Frameworks */ = {isa = PBXBuildFile; productRef = DAB6FF3B2D9AF8DA00CD2DD7 /* FLAnimatedImage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DAB6FF3C2D9AF8DA00CD2DD7 /* FLAnimatedImage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -143,6 +145,9 @@
 			dependencies = (
 			);
 			name = TMarkupParser;
+			packageProductDependencies = (
+				DAB6FF3B2D9AF8DA00CD2DD7 /* FLAnimatedImage */,
+			);
 			productName = TMarkupParser;
 			productReference = DAB263A62D7DB96C00312CB7 /* TMarkupParser.app */;
 			productType = "com.apple.product-type.application";
@@ -193,6 +198,9 @@
 				Base,
 			);
 			mainGroup = DAB2639D2D7DB96C00312CB7;
+			packageReferences = (
+				DAB6FF3A2D9AF8DA00CD2DD7 /* XCRemoteSwiftPackageReference "FLAnimatedImage" */,
+			);
 			productRefGroup = DAB263A72D7DB96C00312CB7 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -505,6 +513,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DAB6FF3A2D9AF8DA00CD2DD7 /* XCRemoteSwiftPackageReference "FLAnimatedImage" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Flipboard/FLAnimatedImage";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.17;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DAB6FF3B2D9AF8DA00CD2DD7 /* FLAnimatedImage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DAB6FF3A2D9AF8DA00CD2DD7 /* XCRemoteSwiftPackageReference "FLAnimatedImage" */;
+			productName = FLAnimatedImage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DAB2639E2D7DB96C00312CB7 /* Project object */;
 }

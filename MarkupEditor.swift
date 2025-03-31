@@ -245,6 +245,64 @@ class MarkupEditor: NSObject {
         }
         return nil
     }
+    
+    // MARK: - Interactive Attachments
+    func insertInteractiveAttachment(_ attachment: InteractiveAttachment, at range: NSRange) {
+        let attributedString = NSAttributedString(attachment: attachment)
+        let mutable = NSMutableAttributedString(attributedString: textView.attributedText ?? NSAttributedString())
+        mutable.replaceCharacters(in: range, with: attributedString)
+        textView.attributedText = mutable
+        
+        // 添加視圖到 textView
+        attachment.addToTextView(textView)
+    }
+    
+    func insertTable(data: [[String]], at range: NSRange) {
+        let tableView = InteractiveTableView(data: data)
+        let attachment = InteractiveAttachment(view: tableView)
+        insertInteractiveAttachment(attachment, at: range)
+    }
+    
+    func insertMention(userId: String, displayName: String, at range: NSRange, onTap: @escaping (String) -> Void) {
+        let mentionView = MentionView(userId: userId, displayName: displayName, onTap: onTap)
+        let attachment = InteractiveAttachment(view: mentionView)
+        insertInteractiveAttachment(attachment, at: range)
+    }
+    
+    // MARK: - Image Attachments
+    func insertImage(url: URL, at range: NSRange) {
+        let attachment = ImageAttachment(imageURL: url)
+        let attributedString = NSAttributedString(attachment: attachment)
+        let mutable = NSMutableAttributedString(attributedString: textView.attributedText ?? NSAttributedString())
+        mutable.replaceCharacters(in: range, with: attributedString)
+        textView.attributedText = mutable
+    }
+    
+    func insertLocalImage(data: Data, at range: NSRange) {
+        // 創建臨時文件
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileName = UUID().uuidString + ".jpg"
+        let fileURL = tempDir.appendingPathComponent(fileName)
+        
+        do {
+            try data.write(to: fileURL)
+            insertImage(url: fileURL, at: range)
+        } catch {
+            print("Error saving image: \(error)")
+        }
+    }
+    
+    // MARK: - GIF Support
+    func insertGIF(url: URL, at range: NSRange) {
+        let attachment = GIFAttachment(gifURL: url)
+        let attributedString = NSAttributedString(attachment: attachment)
+        let mutable = NSMutableAttributedString(attributedString: textView.attributedText ?? NSAttributedString())
+        mutable.replaceCharacters(in: range, with: attributedString)
+        textView.attributedText = mutable
+        
+        // 添加 GIF 視圖到 textView
+        attachment.addToTextView(textView)
+    }
 }
 
 // MARK: - UITextViewDelegate
