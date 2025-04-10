@@ -597,7 +597,7 @@ public class ImageAttachment: NSTextAttachment {
     private func updateTextContainer() {
         guard let textContainer = textContainer,
               let layoutManager = textContainer.layoutManager,
-              let textView = layoutManager.textContainerForGlyphAt(0, effectiveRange: nil) as? UITextView,
+              let textView = layoutManager.textContainer(forGlyphAt: 0, effectiveRange: nil) as? UITextView,
               let range = findAttachmentRange(in: textView) else {
             return
         }
@@ -643,6 +643,38 @@ public class ImageAttachment: NSTextAttachment {
         }
         
         return resizedImage
+    }
+    
+    // 新增方法 - 无参数版本，通过查找当前视图控制器来显示全屏图片
+    public func showFullScreenImage() {
+        guard let textContainer = textContainer,
+              let layoutManager = textContainer.layoutManager,
+              let textView = layoutManager.textContainer(forGlyphAt: 0, effectiveRange: nil) as? UITextView else {
+            return
+        }
+        
+        // 寻找当前的视图控制器
+        if let viewController = findViewController(from: textView) {
+            showFullScreenImage(from: viewController)
+        }
+    }
+    
+    // 显示全屏图片的方法
+    public func showFullScreenImage(from viewController: UIViewController) {
+        let imageVC = FullScreenImageViewController(imageURL: imageURL)
+        viewController.present(imageVC, animated: true)
+    }
+    
+    // 辅助方法 - 从视图找到它的视图控制器
+    private func findViewController(from view: UIView) -> UIViewController? {
+        var responder: UIResponder? = view
+        while let nextResponder = responder?.next {
+            if let viewController = nextResponder as? UIViewController {
+                return viewController
+            }
+            responder = nextResponder
+        }
+        return nil
     }
     
     // 清理緩存

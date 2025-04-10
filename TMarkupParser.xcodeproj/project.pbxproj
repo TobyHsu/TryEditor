@@ -22,7 +22,9 @@
 		DAB6FF372D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF342D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift */; };
 		DAB6FF382D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF352D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift */; };
 		DAB6FF392D906D3D00CD2DD7 /* TRichTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF362D906D3D00CD2DD7 /* TRichTextEditor.swift */; };
-		DAB6FF3C2D9AF8DA00CD2DD7 /* FLAnimatedImage in Frameworks */ = {isa = PBXBuildFile; productRef = DAB6FF3B2D9AF8DA00CD2DD7 /* FLAnimatedImage */; };
+		DAB6FF442DA5907400CD2DD7 /* PositionMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF432DA5907400CD2DD7 /* PositionMapper.swift */; };
+		DAB6FF472DA823C400CD2DD7 /* PositionMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF412DA5906800CD2DD7 /* PositionMapperTests.swift */; };
+		DAB6FF492DA8320E00CD2DD7 /* FullScreenImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB6FF482DA8320E00CD2DD7 /* FullScreenImageViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +55,9 @@
 		DAB6FF342D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TRichTextEditorToolbar.swift; sourceTree = "<group>"; };
 		DAB6FF352D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TRichTextEditorSwiftUI.swift; sourceTree = "<group>"; };
 		DAB6FF362D906D3D00CD2DD7 /* TRichTextEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TRichTextEditor.swift; sourceTree = "<group>"; };
+		DAB6FF412DA5906800CD2DD7 /* PositionMapperTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PositionMapperTests.swift; sourceTree = "<group>"; };
+		DAB6FF432DA5907400CD2DD7 /* PositionMapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PositionMapper.swift; sourceTree = "<group>"; };
+		DAB6FF482DA8320E00CD2DD7 /* FullScreenImageViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FullScreenImageViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,7 +65,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DAB6FF3C2D9AF8DA00CD2DD7 /* FLAnimatedImage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,10 +99,12 @@
 		DAB263A82D7DB96C00312CB7 /* TMarkupParser */ = {
 			isa = PBXGroup;
 			children = (
+				DAB6FF482DA8320E00CD2DD7 /* FullScreenImageViewController.swift */,
 				DAB6FF362D906D3D00CD2DD7 /* TRichTextEditor.swift */,
 				DAB6FF352D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift */,
 				DAB6FF342D906D3D00CD2DD7 /* TRichTextEditorToolbar.swift */,
 				DAB263DA2D81E30700312CB7 /* MarkupNormalizer.swift */,
+				DAB6FF432DA5907400CD2DD7 /* PositionMapper.swift */,
 				DAB263A92D7DB96C00312CB7 /* TMarkupParserApp.swift */,
 				DAB263DC2D81FD6A00312CB7 /* MarkupStyleTypes.swift */,
 				DAB263C32D7DC3EB00312CB7 /* MarkupConverter.swift */,
@@ -124,6 +130,7 @@
 		DAB263CA2D7F310C00312CB7 /* TMarkupParserTests */ = {
 			isa = PBXGroup;
 			children = (
+				DAB6FF412DA5906800CD2DD7 /* PositionMapperTests.swift */,
 				DAB263CB2D7F310C00312CB7 /* TMarkupParserTests.swift */,
 			);
 			path = TMarkupParserTests;
@@ -146,7 +153,6 @@
 			);
 			name = TMarkupParser;
 			packageProductDependencies = (
-				DAB6FF3B2D9AF8DA00CD2DD7 /* FLAnimatedImage */,
 			);
 			productName = TMarkupParser;
 			productReference = DAB263A62D7DB96C00312CB7 /* TMarkupParser.app */;
@@ -199,7 +205,6 @@
 			);
 			mainGroup = DAB2639D2D7DB96C00312CB7;
 			packageReferences = (
-				DAB6FF3A2D9AF8DA00CD2DD7 /* XCRemoteSwiftPackageReference "FLAnimatedImage" */,
 			);
 			productRefGroup = DAB263A72D7DB96C00312CB7 /* Products */;
 			projectDirPath = "";
@@ -243,8 +248,10 @@
 				DAB263BB2D7DBB2200312CB7 /* MarkupVisitor.swift in Sources */,
 				DAB263DB2D81E30700312CB7 /* MarkupNormalizer.swift in Sources */,
 				DAB6FF382D906D3D00CD2DD7 /* TRichTextEditorSwiftUI.swift in Sources */,
+				DAB6FF442DA5907400CD2DD7 /* PositionMapper.swift in Sources */,
 				DAB263AA2D7DB96C00312CB7 /* TMarkupParserApp.swift in Sources */,
 				DAB263C42D7DC3EB00312CB7 /* MarkupConverter.swift in Sources */,
+				DAB6FF492DA8320E00CD2DD7 /* FullScreenImageViewController.swift in Sources */,
 				DAB6FF392D906D3D00CD2DD7 /* TRichTextEditor.swift in Sources */,
 				DAB263BE2D7DBD6D00312CB7 /* MarkupStyle.swift in Sources */,
 			);
@@ -255,6 +262,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DAB263CC2D7F310C00312CB7 /* TMarkupParserTests.swift in Sources */,
+				DAB6FF472DA823C400CD2DD7 /* PositionMapperTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -513,25 +521,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		DAB6FF3A2D9AF8DA00CD2DD7 /* XCRemoteSwiftPackageReference "FLAnimatedImage" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Flipboard/FLAnimatedImage";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.17;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		DAB6FF3B2D9AF8DA00CD2DD7 /* FLAnimatedImage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DAB6FF3A2D9AF8DA00CD2DD7 /* XCRemoteSwiftPackageReference "FLAnimatedImage" */;
-			productName = FLAnimatedImage;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DAB2639E2D7DB96C00312CB7 /* Project object */;
 }

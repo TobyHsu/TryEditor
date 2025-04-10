@@ -270,16 +270,18 @@ class MarkupEditor: NSObject {
     }
     
     // MARK: - Image Attachments
-    func insertImage(url: URL, at range: NSRange) {
-        let attachment = ImageAttachment(imageURL: url)
-        let attributedString = NSAttributedString(attachment: attachment)
-        let mutable = NSMutableAttributedString(attributedString: textView.attributedText ?? NSAttributedString())
-        mutable.replaceCharacters(in: range, with: attributedString)
-        textView.attributedText = mutable
+    public func insertImage(url: URL, at range: NSRange) {
+        let imageAttachment = ImageAttachment(imageURL: url, maxWidth: textView.frame.width - 20)
+        
+        setupImageTapGesture(attachment: imageAttachment)
+        
+        let attributedString = NSAttributedString(attachment: imageAttachment)
+        
+        textView.textStorage.replaceCharacters(in: range, with: attributedString)
     }
     
-    func insertLocalImage(data: Data, at range: NSRange) {
-        // 創建臨時文件
+    public func insertLocalImage(data: Data, at range: NSRange) {
+        // 创建临时文件URL
         let tempDir = FileManager.default.temporaryDirectory
         let fileName = UUID().uuidString + ".jpg"
         let fileURL = tempDir.appendingPathComponent(fileName)
@@ -288,20 +290,41 @@ class MarkupEditor: NSObject {
             try data.write(to: fileURL)
             insertImage(url: fileURL, at: range)
         } catch {
-            print("Error saving image: \(error)")
+            print("保存图片数据失败: \(error)")
         }
     }
     
-    // MARK: - GIF Support
-    func insertGIF(url: URL, at range: NSRange) {
-        let attachment = GIFAttachment(gifURL: url)
-        let attributedString = NSAttributedString(attachment: attachment)
-        let mutable = NSMutableAttributedString(attributedString: textView.attributedText ?? NSAttributedString())
-        mutable.replaceCharacters(in: range, with: attributedString)
-        textView.attributedText = mutable
+    // 新增 - 设置图片点击手势
+    private func setupImageTapGesture(attachment: ImageAttachment) {
+        if textView.gestureRecognizers?.contains(where: { $0 is UITapGestureRecognizer && ($0 as? UITapGestureRecognizer)?.name == "ImageTapGesture" }) != true {
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTextViewTap(_:)))
+            tapGesture.name = "ImageTapGesture"
+            tapGesture.delegate = self
+            textView.addGestureRecognizer(tapGesture)
+        }
+    }
+    
+    // 新增 - 处理文本视图中的点击事件
+    @objc private func handleTextViewTap(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: textView)
         
-        // 添加 GIF 視圖到 textView
-        attachment.addToTextView(textView)
+        // 查找点击位置的文本
+        guard let textPosition = textView.closestPosition(to: location),
+              let charIndex = textView.offset(from: textView.beginningOfDocument, to: textPosition) else {
+            return
+        }
+        
+        // 检查字符索引是否在范围内
+        let attributedText = textView.attributedText
+        if charIndex >= attributedText.length {
+            return
+        }
+        
+        // 查找附件属性
+        let attributes = attributedText.attributes(at: charIndex, effectiveRange: nil)
+        if let attachment = attributes[.attachment] as? ImageAttachment {
+            attachment.showFullScreenImage()
+        }
     }
 }
 
@@ -379,5 +402,12 @@ extension MarkupEditor: UITextViewDelegate {
             currentListNumber += 1
             updateContent(newText)
         }
+    }
+}
+
+// 添加UIGestureRecognizerDelegate扩展
+extension MarkupEditor: UIGestureRecognizerDelegate {
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
 } 

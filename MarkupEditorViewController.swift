@@ -5,11 +5,14 @@ class MarkupEditorViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        
+        view.backgroundColor = .white
+        
+        setupMarkupEditor()
         setupTestButtons()
     }
     
-    private func setupUI() {
+    private func setupMarkupEditor() {
         // 設置導航欄
         title = "Markup Editor"
         navigationItem.rightBarButtonItem = UIBarButtonItem(
@@ -59,12 +62,12 @@ class MarkupEditorViewController: UIViewController {
     }
     
     private func setupTestButtons() {
-        let stackView = UIStackView()
-        stackView.axis = .horizontal
-        stackView.spacing = 8
-        stackView.distribution = .fillEqually
-        stackView.translatesAutoresizingMaskIntoConstraints = false
+        let buttonStackView = UIStackView()
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 10
+        buttonStackView.distribution = .fillEqually
         
+        // 创建按钮
         let insertTableButton = UIButton(type: .system)
         insertTableButton.setTitle("插入表格", for: .normal)
         insertTableButton.addTarget(self, action: #selector(insertTableTapped), for: .touchUpInside)
@@ -74,67 +77,60 @@ class MarkupEditorViewController: UIViewController {
         insertMentionButton.addTarget(self, action: #selector(insertMentionTapped), for: .touchUpInside)
         
         let insertImageButton = UIButton(type: .system)
-        insertImageButton.setTitle("插入圖片", for: .normal)
+        insertImageButton.setTitle("插入图片", for: .normal)
         insertImageButton.addTarget(self, action: #selector(insertImageTapped), for: .touchUpInside)
         
-        let insertGIFButton = UIButton(type: .system)
-        insertGIFButton.setTitle("插入GIF", for: .normal)
-        insertGIFButton.addTarget(self, action: #selector(insertGIFTapped), for: .touchUpInside)
+        // 添加按钮到堆栈视图
+        buttonStackView.addArrangedSubview(insertTableButton)
+        buttonStackView.addArrangedSubview(insertMentionButton)
+        buttonStackView.addArrangedSubview(insertImageButton)
         
-        stackView.addArrangedSubview(insertTableButton)
-        stackView.addArrangedSubview(insertMentionButton)
-        stackView.addArrangedSubview(insertImageButton)
-        stackView.addArrangedSubview(insertGIFButton)
+        // 添加堆栈视图到主视图
+        view.addSubview(buttonStackView)
         
-        view.addSubview(stackView)
-        
+        // 设置布局约束
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            stackView.heightAnchor.constraint(equalToConstant: 44)
+            buttonStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            buttonStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            buttonStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            buttonStackView.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
     
     @objc private func insertTableTapped() {
-        let testData = [
-            ["標題1", "標題2", "標題3"],
-            ["數據1", "數據2", "數據3"],
-            ["數據4", "數據5", "數據6"]
+        // 示例表格数据
+        let tableData = [
+            ["姓名", "年龄", "职业"],
+            ["张三", "30", "工程师"],
+            ["李四", "25", "设计师"],
+            ["王五", "35", "产品经理"]
         ]
         
-        let textView = markupEditor.getTextView()
-        markupEditor.insertTable(data: testData, at: textView.selectedRange)
+        // 在当前位置插入表格
+        if let selectedRange = markupEditor.getTextView().selectedRange {
+            markupEditor.insertTable(data: tableData, at: selectedRange)
+        }
     }
     
     @objc private func insertMentionTapped() {
-        let textView = markupEditor.getTextView()
-        markupEditor.insertMention(
-            userId: "user123",
-            displayName: "測試用戶",
-            at: textView.selectedRange
-        ) { userId in
-            let alert = UIAlertController(
-                title: "提及用戶",
-                message: "點擊了用戶ID: \(userId)",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "確定", style: .default))
-            self.present(alert, animated: true)
+        // 在当前位置插入@提及
+        if let selectedRange = markupEditor.getTextView().selectedRange {
+            markupEditor.insertMention(userId: "user123", displayName: "@张三", at: selectedRange) { userId in
+                // 点击提及时的回调
+                let alert = UIAlertController(title: "提及点击", message: "用户ID: \(userId)", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "确定", style: .default))
+                self.present(alert, animated: true)
+            }
         }
     }
     
     @objc private func insertImageTapped() {
+        // 打开图片选择器
         let imagePicker = UIImagePickerController()
         imagePicker.sourceType = .photoLibrary
         imagePicker.delegate = self
         present(imagePicker, animated: true)
-    }
-    
-    @objc private func insertGIFTapped() {
-        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.gif])
-        documentPicker.delegate = self
-        present(documentPicker, animated: true)
     }
     
     @objc private func previewTapped() {
@@ -150,10 +146,13 @@ extension MarkupEditorViewController: UIImagePickerControllerDelegate, UINavigat
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         picker.dismiss(animated: true)
         
+        // 获取选择的图片
         if let image = info[.originalImage] as? UIImage,
            let imageData = image.jpegData(compressionQuality: 0.8) {
-            let textView = markupEditor.getTextView()
-            markupEditor.insertLocalImage(data: imageData, at: textView.selectedRange)
+            // 在当前位置插入图片
+            if let selectedRange = markupEditor.getTextView().selectedRange {
+                markupEditor.insertLocalImage(data: imageData, at: selectedRange)
+            }
         }
     }
     

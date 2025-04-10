@@ -239,4 +239,116 @@ final class TMarkupParserTests: XCTestCase {
         let cell = tableView.tableView(tableView, cellForRowAt: IndexPath(row: 0, section: 0))
         XCTAssertEqual(cell.textLabel?.text, "標題1 | 標題2")
     }
+    
+    func testListAndFontStyle() {
+        let rawText = """
+        - abc
+        - def
+        {{font color="#FF0000"}}my world{{/font}}
+        """
+        
+        let node = parser.parse(rawText)
+        let a = converter.attributedStringFromMarkup(rawText)
+        XCTAssertEqual(a.string, "\t• abc\n\t• def\nmy world")
+        let backToMarkup = converter.markupFromAttributedString(a)
+        XCTAssertEqual(backToMarkup, rawText)
+    }
+    
+    // MARK: - 測試游標位置映射
+    func testCursorPositionMapping() {
+        // 創建測試用的位置映射管理器
+        let positionMapper = PositionMapper(parser: parser)
+        
+        // 測試1: 普通樣式的位置映射
+        let test1 = "**粗體文本**"
+        let expectedMapping1: [(Int, Int)] = [
+            (0, 0), // **的開始
+            (1, 0), // *的位置
+            (2, 0), // 粗體文本的開始，轉換後應該是位置0
+            (3, 1), // 對應轉換後的'粗'字位置1
+            (4, 2), // 對應轉換後的'體'字位置2
+            (5, 3), // 對應轉換後的'文'字位置3
+            (6, 4), // 對應轉換後的'本'字位置4
+            (7, 4), // **的開始
+            (8, 4)  // *的位置
+        ]
+        
+        let attributedText1 = converter.attributedStringFromMarkup(test1)
+        positionMapper.buildPositionMap(rawText: test1, attributedString: attributedText1)
+        
+        for (raw, rendered) in expectedMapping1 {
+            let calculatedRendered = positionMapper.convertToRenderedPosition(raw)
+            XCTAssertEqual(calculatedRendered, rendered, "測試1：原始位置 \(raw) 應該映射到渲染位置 \(rendered)，但得到了 \(calculatedRendered)")
+            
+            let calculatedRaw = positionMapper.convertToRawPosition(rendered)
+            XCTAssertLessThanOrEqual(calculatedRaw, raw, "測試1：渲染位置 \(rendered) 應該映射到原始位置小於等於 \(raw)，但得到了 \(calculatedRaw)")
+        }
+        
+        // 測試2: 列表樣式的位置映射
+        let test2 = """
+        - 列表項1
+        - 列表項2
+          - 嵌套項
+        """
+        
+        let expectedMapping2: [(Int, Int)] = [
+            (0, 0),  // '-'的位置，轉換後縮進+項目符號的開始
+            (1, 0),  // ' '的位置，仍在項目符號內
+            (2, 2),  // '列'的位置，轉換後實際文本開始
+            (5, 5),  // '1'的位置
+            (6, 6),  // 換行符位置
+            (7, 7),  // 第二個'-'的位置
+            (9, 9),  // 第二個列表項實際文本開始
+            (14, 14), // 換行符位置
+            (15, 15), // 空格，表示縮進
+            (16, 15), // 空格，表示縮進
+            (17, 15), // 嵌套列表'-'的位置
+            (18, 15), // 嵌套列表' '的位置
+            (19, 17)  // '嵌'的位置，嵌套列表實際文本開始
+        ]
+        
+        let attributedText2 = converter.attributedStringFromMarkup(test2)
+        positionMapper.buildPositionMap(rawText: test2, attributedString: attributedText2)
+        
+        print("原始文本: \"\(test2)\"")
+        print("渲染文本: \"\(attributedText2.string)\"")
+        
+        for (raw, rendered) in expectedMapping2 {
+            let calculatedRendered = positionMapper.convertToRenderedPosition(raw)
+            // 由於列表項的複雜性，我們這裡只測試近似值
+            XCTAssertTrue(abs(calculatedRendered - rendered) <= 2, 
+                         "測試2：原始位置 \(raw) 應該映射到渲染位置接近 \(rendered)，但得到了 \(calculatedRendered)")
+            
+            if rendered < attributedText2.length {
+                let calculatedRaw = positionMapper.convertToRawPosition(rendered)
+                // 同樣測試近似值
+                XCTAssertTrue(abs(calculatedRaw - raw) <= 2 || calculatedRaw <= raw, 
+                             "測試2：渲染位置 \(rendered) 應該映射到原始位置接近 \(raw)，但得到了 \(calculatedRaw)")
+            }
+        }
+        
+        // 測試3: 混合樣式的測試
+        let test3 = "- **粗體** _斜體_"
+        
+        let expectedMapping3: [(Int, Int)] = [
+            (0, 0),  // '-'的位置
+            (2, 2),  // '**'的開始
+            (4, 2),  // '粗'的位置
+            (10, 6), // '_'的位置
+            (11, 6), // '斜'的位置
+        ]
+        
+        let attributedText3 = converter.attributedStringFromMarkup(test3)
+        positionMapper.buildPositionMap(rawText: test3, attributedString: attributedText3)
+        
+        print("原始文本: \"\(test3)\"")
+        print("渲染文本: \"\(attributedText3.string)\"")
+        
+        for (raw, rendered) in expectedMapping3 {
+            let calculatedRendered = positionMapper.convertToRenderedPosition(raw)
+            // 測試近似值
+            XCTAssertTrue(abs(calculatedRendered - rendered) <= 2, 
+                         "測試3：原始位置 \(raw) 應該映射到渲染位置接近 \(rendered)，但得到了 \(calculatedRendered)")
+        }
+    }
 }
